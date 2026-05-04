@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>抛物线核心性质・互动探索</title>
+  <style>
+    :root {
+      --bg: #f3f6f9; 
+      --card: #ffffff; 
+      --ink: #1e293b; 
+      --muted: #64748b; 
+      --pri: #2563eb; /* 深邃蓝 */
+      --pri-light: #eff6ff;
+      --sec: #059669; /* 翡翠绿 */
+      --warn: #d97706; 
+      --bad: #ef4444;
+      --grid: #e2e8f0;
+    }
+    * { box-sizing: border-box; touch-action: manipulation; }
+    body { 
+      margin: 0; 
+      font-family: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif; 
+      background: var(--bg); 
+      color: var(--ink); 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    header { 
+      background: #ffffff;
+      color: var(--ink); 
+      padding: 16px 24px; 
+      position: sticky; 
+      top: 0; 
+      z-index: 10; 
+      box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 20px rgba(37, 99, 235, 0.05);
+      border-bottom: 2px solid var(--pri);
+    }
+    header h1 { margin: 0; font-size: 22px; font-weight: 800; color: var(--pri); }
+    header p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+    
+    .layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+    nav { background: var(--card); border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,.03); height: calc(100vh - 100px); position: sticky; top: 90px; overflow: auto; }
+    .nav-btn { display: block; width: 100%; text-align: left; border: 1px solid transparent; background: transparent; color: var(--muted); padding: 14px 16px; margin: 6px 0; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.2s ease; }
+    .nav-btn:hover { background: var(--pri-light); color: var(--pri); }
+    .nav-btn.active { background: var(--pri); color: #fff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    
+    .score-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 14px; margin-top: 20px; font-size: 14px; }
+    main { display: flex; flex-direction: column; gap: 20px; }
+    .page { display: none; background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.03); border: 1px solid #f1f5f9; }
+    .page.active { display: block; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
+    
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; }
+    h2 { margin: 0 0 12px; font-size: 22px; color: var(--pri); }
+    h3 { margin: 0 0 10px; font-size: 17px; display: flex; align-items: center; gap: 6px; }
+    p, li { line-height: 1.7; font-size: 15px; }
+    
+    .interactive-wrap { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+    svg { width: 100%; height: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; touch-action: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+    
+    .control-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.02); }
+    .control-panel p { margin-top: 0; color: var(--muted); font-size: 14px; }
+    
+    input[type=range] { -webkit-appearance: none; width: 100%; margin: 12px 0; height: 6px; background: #e2e8f0; border-radius: 4px; outline: none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--pri); cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.4); border: 2px solid #fff; transition: transform 0.1s; }
+    input[type=range]::-webkit-slider-thumb:active { transform: scale(1.1); }
+    
+    .question { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 20px; margin-top: 20px; }
+    .actions { display: flex; gap: 10px; margin-top: 16px; }
+    button { border: none; border-radius: 10px; padding: 12px 20px; font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.2s; }
+    button:active { transform: scale(0.97); }
+    .primary { background: var(--pri); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+    .primary:hover { background: #1d4ed8; }
+    .ghost { background: #ffffff; color: var(--ink); border: 1px solid #cbd5e1; }
+    .ghost:hover { background: #f1f5f9; }
+    .danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 8px 14px; width: 100%; margin-top: 12px;}
+    
+    input[type=text] { width: 100%; padding: 14px 16px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 10px; margin-top: 8px; background: #fff; transition: border-color 0.2s; }
+    input[type=text]:focus { outline: none; border-color: var(--sec); box-shadow: 0 0 0 3px rgba(5,150,105,0.1); }
+    
+    .feedback { margin-top: 12px; font-weight: 700; font-size: 14px; }
+    .hint { display: none; margin-top: 12px; background: #fff; border-left: 4px solid var(--warn); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .hint.show { display: block; animation: fadeIn 0.3s ease; }
+    
+    .dir-btns { display: flex; gap: 8px; margin-top: 12px; }
+    .dir-btn { flex: 1; padding: 10px 0; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; text-align: center; font-weight: 600; color: var(--muted); transition: 0.2s; font-size: 14px; }
+    .dir-btn.active { background: var(--pri-light); color: var(--pri); border-color: #bfdbfe; }
+    
+    .highlight { color: var(--pri); font-weight: bold; }
+    
+    @media (min-width: 900px) { .interactive-wrap { grid-template-columns: 1.6fr 1fr; } }
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+      nav { height: auto; position: relative; top: 0; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
+      .nav-btn { width: calc(50% - 4px); margin: 0; padding: 12px; font-size: 13px; text-align: center; }
+      .score-box { width: 100%; margin-top: 8px; }
+      .page { padding: 16px; }
+      .dir-btns { flex-wrap: wrap; }
+      .dir-btn { width: calc(50% - 4px); flex: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>抛物线基本性质・具身探索</h1>
+  <p>指尖滑动，直观感受抛物线的定义、方程与几何关系。</p>
+</header>
+
+<div class="layout">
+  <nav>
+    <div style="font-size: 13px; font-weight: bold; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">核心知识点</div>
+    <button class="nav-btn active" data-page="0">1. 抛物线定义</button>
+    <button class="nav-btn" data-page="1">2. 焦点与准线</button>
+    <button class="nav-btn" data-page="2">3. 标准方程与开口</button>
+    <button class="nav-btn" data-page="3">4. 离心率</button>
+    
+    <div class="score-box">
+      <div style="font-weight:bold; color:var(--ink); margin-bottom: 8px;">🏆 学习纪录</div>
+      <div style="display:flex; justify-content: space-between; margin-bottom: 4px;"><span>已作答:</span> <span id="answeredCount">0 / 4</span></div>
+      <div style="display:flex; justify-content: space-between; align-items: center;"><span>总得分:</span> <span id="scoreValue" style="color:var(--sec); font-weight:800; font-size:18px;">0</span></div>
+      <button class="danger" id="resetScore">清除纪录</button>
+    </div>
+  </nav>
+  
+  <main id="pages"></main>
+</div>
+
+<script>
+// --- 核心内容数据 ---
+const pagesData = [
+  {
+    title: '知识点 1：抛物线定义',
+    intro: '平面内与一个定点 F（焦点）和一条定直线 l（准线，不经过点 F）的距离相等的点的轨迹叫做抛物线。',
+    example: {
+      prompt: '👉 具身探索：拖动抛物线上的绿点 P，观察其到焦点 F 与准线 l 的距离关系。',
+      solution: ['无论 P 点移动到哪，始终满足：|PF| = P 到准线 l 的垂直距离。'],
+      insight: '抽象的"距离相等"在拖动中变成了可视化的同步数值，这就是抛物线的核心基因。'
+    },
+    practice: {
+      question: '若抛物线上一点 P 到焦点 F 的距离为 8，则点 P 到准线的距离为多少？',
+      answer: '8',
+      hint: '根据抛物线定义，抛物线上的点到焦点的距离与到准线的距离始终绝对相等。'
+    },
+    interaction: { type: 'definition' }
+  },
+  {
+    title: '知识点 2：焦点与准线',
+    intro: '标准方程 y² = 2px (p>0) 中，p 被称为焦准距（焦点到准线的距离）。焦点坐标为 F(p/2, 0)，准线方程为 x = -p/2。',
+    example: {
+      prompt: '👉 具身探索：左右滑动滑块改变参数 p，观察图形如何随之缩放。',
+      solution: ['p 越大，抛物线开口越宽广。', '焦点 F 与准线 l 随着 p 的增大，向中心两侧均匀拉开。'],
+      insight: '参数 p 就是抛物线的"身型密码"，它直接决定了抛物线有多扁或多陡。'
+    },
+    practice: {
+      question: '已知抛物线方程为 y² = 8x，请写出其焦点坐标（格式如：2,0）。',
+      answer: '2,0',
+      hint: '先将方程化为标准形式 y² = 2px，可知 2p = 8，推导出 p = 4。向右开口的焦点坐标为 (p/2, 0)。'
+    },
+    interaction: { type: 'focus' }
+  },
+  {
+    title: '知识点 3：标准方程与开口方向',
+    intro: '抛物线有四种标准方程，分别对应向右、向左、向上、向下四种开口方向。哪边是一次项，对称轴就在哪个轴上。',
+    example: {
+      prompt: '👉 具身探索：点击下方按钮切换四种不同的标准方程，观察图形的朝向变化。',
+      solution: ['y² = 2px：向右 (x 轴正向)', 'y² = -2px：向左 (x 轴负向)', 'x² = 2py：向上 (y 轴正向)', 'x² = -2py：向下 (y 轴负向)'],
+      insight: '口诀技巧：看方程的"一次项"。一次项是 x，开口就在左右；系数是正数就向正方向。'
+    },
+    practice: {
+      question: '方程 x² = -4y 的开口方向是哪里？（请输入：向上/向下/向左/向右）',
+      answer: '向下',
+      hint: '方程的一次项是 y，说明对称轴是 y 轴。一次项系数 -4 为负，所以朝向 y 轴的负半轴（向下）。'
+    },
+    interaction: { type: 'direction' }
+  },
+  {
+    title: '知识点 4：离心率 (e)',
+    intro: '抛物线被视为椭圆与双曲线的临界状态。所有的圆锥曲线都满足：点到焦点的距离与点到准线的距离之比为 e。',
+    example: {
+      prompt: '👉 具身归纳：基于前几个页面的探索，理解离心率的本质。',
+      solution: ['椭圆：距离比值 0 < e < 1', '抛物线：距离比值 e = 1', '双曲线：距离比值 e > 1'],
+      insight: '对于任意一条抛物线，由于定义要求两者距离严格相等，因此它们的比值永远等于 1。'
+    },
+    practice: {
+      question: '任意一条抛物线的离心率 e 的值恒等于多少？',
+      answer: '1',
+      hint: '抛物线的定义就是“到点距离=到线距离”，两者相除，比值自然是 1。'
+    },
+    interaction: { type: 'eccentricity' }
+  }
+];
+
+// --- SVG 渲染助手函数 ---
+// 生成带网格的背景 (颜值提升关键)
+function getBaseSVG() {
+  return `
+    <defs>
+      <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--grid)" stroke-width="0.5" />
+      </pattern>
+    </defs>
+    <rect width="360" height="240" fill="url(#gridPattern)" />
+    <line x1="20" y1="120" x2="340" y2="120" stroke="#94a3b8" stroke-width="1.5" />
+    <line x1="180" y1="20" x2="180" y2="220" stroke="#94a3b8" stroke-width="1.5" />
+    <polygon points="340,120 334,116 334,124" fill="#94a3b8" />
+    <polygon points="180,20 176,26 184,26" fill="#94a3b8" />
+    <text x="325" y="112" font-size="12" fill="#64748b" font-style="italic">x</text>
+    <text x="188" y="30" font-size="12" fill="#64748b" font-style="italic">y</text>
+    <text x="166" y="136" font-size="12" fill="#64748b" font-style="italic">O</text>
+  `;
+}
+
+// ✨ 修复：正确的生成 SVG 路径指令 (M 和 L)
+function getParabolaPath(type, p_val, scale=10) {
+    let pts = [];
+    for(let t = -15; t <= 15; t += 0.5){
+        let main = t; 
+        let secondary = (t * t) / (2 * p_val); 
+        let px, py;
+        if(type === 0) { px = secondary; py = main; }       // y^2 = 2px (开口向右)
+        else if(type === 1) { px = -secondary; py = main; } // y^2 = -2px (开口向左)
+        else if(type === 2) { px = main; py = secondary; }  // x^2 = 2py (开口向上)
+        else if(type === 3) { px = main; py = -secondary; } // x^2 = -2py (开口向下)
+        
+        // SVG 坐标系转换：x 向右为正，y 向下为正
+        pts.push(`${180 + px * scale},${120 - py * scale}`);
+    }
+    // 加入 M (MoveTo) 和 L (LineTo) 生成合法的 SVG 路径
+    return 'M ' + pts.join(' L ');
+}
+
+// 页面交互 HTML 生成
+function interactionHTML(type, idx){
+  if(type === 'definition') return `
+    <div class="interactive-wrap">
+      <svg viewBox="0 0 360 240" id="svg-${idx}">
+        ${getBaseSVG()}
+        <path id="curve-${idx}" d="${getParabolaPath(0, 2)}" fill="none" stroke="var(--pri)" stroke-width="2.5" />
+        <line id="directrix-${idx}" x1="160" y1="20" x2="160" y2="220" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="6,4" />
+        <text x="155" y="40" font-size="12" fill="#8b5cf6" text-anchor="end">l (准线)</text>
+        <circle cx="200" cy="120" r="4.5" fill="#ef4444" />
+        <text x="206" y="116" font-size="13" fill="#ef4444" font-weight="bold">F</text>
+        
+        <line id="linePF-${idx}" x1="200" y1="120" x2="220" y2="80" stroke="var(--sec)" stroke-width="2" />
+        <line id="linePL-${idx}" x1="160" y1="80" x2="220" y2="80" stroke="#8b5cf6" stroke-width="2" />
+        <circle id="pointP-${idx}" cx="220" cy="80" r="9" fill="var(--sec)" stroke="#fff" stroke-width="2" style="cursor:grab" />
+      </svg>
+      <div class="control-panel">
+        <p>💡 拖动图上的 <b>绿色节点 P</b>，对比距离读数：</p>
+        <div style="font-size:16px; margin-top:12px;">|PF| 距离 = <strong id="valPF-${idx}" style="color:var(--sec)"></strong></div>
+        <div style="font-size:16px; margin-top:8px;">P 到准线 l 距离 = <strong id="valPL-${idx}" style="color:#8b5cf6"></strong></div>
+      </div>
+    </div>`;
+    
+  if(type === 'focus') return `
+    <div class="interactive-wrap">
+      <svg viewBox="0 0 360 240" id="svg-${idx}">
+        ${getBaseSVG()}
+        <path id="curve-${idx}" fill="none" stroke="var(--pri)" stroke-width="2.5" />
+        <line id="directrix-${idx}" y1="20" y2="220" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,4" />
+        <text id="dirTextSVG-${idx}" y="35" font-size="12" fill="#8b5cf6" text-anchor="end">l</text>
+        <circle id="focus-${idx}" cy="120" r="4.5" fill="#ef4444" />
+        <text id="focusText-${idx}" y="112" font-size="13" fill="#ef4444" font-weight="bold">F</text>
+      </svg>
+      <div class="control-panel">
+        <label>拖动改变参数 p (焦准距)</label>
+        <input id="slider-${idx}" type="range" min="1" max="8" step="0.5" value="4">
+        <div style="margin-top:16px; font-size:15px; background:var(--bg); padding:12px; border-radius:8px;">
+          <div style="margin-bottom:6px;">标准方程：<b class="highlight">y² = <span id="eqVal-${idx}"></span>x</b></div>
+          <div style="margin-bottom:6px;">焦点 F 坐标：<b>(<span id="fVal-${idx}" style="color:#ef4444"></span>, 0)</b></div>
+          <div>准线 l 方程：<b>x = <span id="lVal-${idx}" style="color:#8b5cf6"></span></b></div>
+        </div>
+      </div>
+    </div>`;
+    
+  if(type === 'direction') return `
+    <div class="interactive-wrap">
+      <svg viewBox="0 0 360 240" id="svg-${idx}">
+        ${getBaseSVG()}
+        <path id="curve-${idx}" fill="none" stroke="var(--pri)" stroke-width="2.5" />
+        <line id="directrix-${idx}" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,4" />
+        <circle id="focus-${idx}" r="4.5" fill="#ef4444" />
+      </svg>
+      <div class="control-panel">
+        <p>点击切换不同的方程形式：</p>
+        <div class="dir-btns" id="btns-${idx}">
+            <div class="dir-btn active" data-t="0">y² = 2px</div>
+            <div class="dir-btn" data-t="1">y² = -2px</div>
+            <div class="dir-btn" data-t="2">x² = 2py</div>
+            <div class="dir-btn" data-t="3">x² = -2py</div>
+        </div>
+        <div style="margin-top:20px; font-size:16px;">当前开口方向：<strong id="dirText-${idx}" style="color:var(--pri);font-size:18px;">向右</strong></div>
+      </div>
+    </div>`;
+
+  if(type === 'eccentricity') return `
+    <div class="interactive-wrap">
+      <svg viewBox="0 0 360 240">
+        ${getBaseSVG()}
+        <path d="${getParabolaPath(0, 3)}" fill="none" stroke="var(--pri)" stroke-width="2.5" />
+        <circle cx="180" cy="120" r="5" fill="var(--sec)" />
+        <text x="188" y="138" font-size="13" font-weight="bold" fill="var(--sec)">顶点 (0,0)</text>
+      </svg>
+      <div class="control-panel">
+        <h3 style="color:var(--ink); margin-top:0;">常数性质小结</h3>
+        <ul style="margin:0; padding-left:20px;">
+            <li style="margin-bottom:8px;">不论 p 怎么变，标准抛物线的顶点永远位于 <b>原点 (0,0)</b>。</li>
+            <li>不论怎么缩放，由于定义是距离"相等"，其离心率永远为 <b class="highlight">e = 1</b>。</li>
+        </ul>
+      </div>
+    </div>`;
+  return '';
+}
+
+// --- 逻辑初始化 ---
+const pagesEl = document.getElementById('pages');
+const scoreKey = 'parabolaScore_V2';
+let score = JSON.parse(localStorage.getItem(scoreKey) || '{}');
+
+function normalizeAnswer(input, answer) {
+  const norm = s => String(s).replace(/[\s（）()]/g,'').toLowerCase();
+  input = norm(input); answer = norm(answer);
+  if(input === answer) return true;
+  // 处理坐标比对 
+  const pIn = input.split(/[,，]/), pAns = answer.split(/[,，]/);
+  if(pIn.length === 2 && pAns.length === 2) {
+      return parseFloat(pIn[0]) === parseFloat(pAns[0]) && parseFloat(pIn[1]) === parseFloat(pAns[1]);
+  }
+  return false;
+}
+
+function updateScoreBoard() {
+  const entries = Object.values(score);
+  const answered = entries.length;
+  const correct = entries.filter(Boolean).length;
+  document.getElementById('answeredCount').textContent = answered + " / 4";
+  document.getElementById('scoreValue').textContent = correct;
+  localStorage.setItem(scoreKey, JSON.stringify(score));
+}
+
+// 渲染 HTML 骨架
+pagesData.forEach((d, idx) => {
+  const div = document.createElement('section');
+  div.className = 'page' + (idx === 0 ? ' active' : '');
+  div.innerHTML = `
+    <div class="card" style="background:#fff;">
+      <h2>${d.title}</h2>
+      <p style="color:var(--muted); margin-bottom:0;">${d.intro}</p>
+    </div>
+
+    <div style="margin-top:20px;">
+      <p style="margin:0 0 10px 4px; font-weight:600; color:var(--ink);">${d.example.prompt}</p>
+      ${interactionHTML(d.interaction.type, idx)}
+      <div style="margin-top:16px; background:#eff6ff; padding:16px; border-radius:12px; border:1px solid #bfdbfe;">
+        <h3 style="color:#1d4ed8; font-size:15px; margin-top:0;">👁️ 观察结论</h3>
+        <ul style="margin:0; padding-left:20px; color:#1e3a8a;">${d.example.solution.map(x=>`<li>${x}</li>`).join('')}</ul>
+        <div style="margin-top:10px; color:var(--pri); font-weight:bold; font-size:14px;">💡 ${d.example.insight}</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <h3 style="color:#166534;">✍️ 随堂测验</h3>
+      <p>${d.practice.question}</p>
+      <input id="answer-${idx}" type="text" placeholder="👉 请输入你的答案" />
+      <div class="actions">
+        <button class="primary" data-check="${idx}">提交验证</button>
+        <button class="ghost" data-hint="${idx}">需要提示</button>
+      </div>
+      <div class="hint" id="hint-${idx}">${d.practice.hint}</div>
+      <div class="feedback" id="feedback-${idx}"></div>
+    </div>
+  `;
+  pagesEl.appendChild(div);
+});
+
+// 导航栏与分页逻辑
+function setPage(n) {
+  document.querySelectorAll('.page').forEach((p, i) => p.classList.toggle('active', i === n));
+  document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === n));
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+document.querySelectorAll('.nav-btn').forEach(btn => btn.onclick = () => setPage(Number(btn.dataset.page)));
+
+// 题目验证与分数逻辑
+document.querySelectorAll('[data-hint]').forEach(btn => btn.onclick = () => document.getElementById('hint-'+btn.dataset.hint).classList.toggle('show'));
+document.querySelectorAll('[data-check]').forEach(btn => {
+  btn.onclick = () => {
+    const i = Number(btn.dataset.check);
+    const input = document.getElementById('answer-'+i).value.trim();
+    const ok = normalizeAnswer(input, pagesData[i].practice.answer);
+    score[i] = ok;
+    const fb = document.getElementById('feedback-'+i);
+    fb.textContent = ok ? '🎉 答对了！概念掌握得很棒。' : `❌ 答案有误，请参考上方知识点或查看提示后再试。`;
+    fb.style.color = ok ? 'var(--sec)' : 'var(--bad)';
+    updateScoreBoard();
+  }
+});
+document.getElementById('resetScore').onclick = () => { 
+  score = {}; updateScoreBoard(); 
+  document.querySelectorAll('.feedback').forEach(el => el.textContent = ''); 
+  document.querySelectorAll('input[type=text]').forEach(el => el.value = ''); 
+};
+updateScoreBoard();
+
+// --- 交互式拖拽核心逻辑 (兼容鼠标与触摸屏) ---
+function makeDraggableY(svg, point, p_val, onUpdate) {
+  let dragging = false;
+  const scale = 10, cx = 180, cy = 120;
+  
+  const startDrag = (e) => { dragging = true; point.setAttribute('r', '11'); point.setAttribute('stroke-width', '3'); };
+  const endDrag = () => { dragging = false; point.setAttribute('r', '9'); point.setAttribute('stroke-width', '2'); };
+  
+  point.addEventListener('mousedown', startDrag);
+  point.addEventListener('touchstart', (e) => { e.preventDefault(); startDrag(); }, {passive: false});
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
+  
+  const moveHandler = (clientY) => {
+      if(!dragging) return;
+      const rect = svg.getBoundingClientRect();
+      let y_svg = (clientY - rect.top) * (svg.viewBox.baseVal.height / rect.height);
+      // 限制拖动范围不出界
+      y_svg = Math.max(20, Math.min(220, y_svg));
+      
+      let math_y = (cy - y_svg) / scale;
+      let math_x = (math_y * math_y) / (2 * p_val); // 代入 y^2 = 2px
+      let x_svg = cx + math_x * scale;
+      
+      point.setAttribute('cx', x_svg);
+      point.setAttribute('cy', y_svg);
+      onUpdate(x_svg, y_svg, math_x, math_y);
+  };
+
+  svg.addEventListener('mousemove', e => moveHandler(e.clientY));
+  svg.addEventListener('touchmove', e => { if(dragging){ e.preventDefault(); moveHandler(e.touches[0].clientY); }}, {passive: false});
+}
+
+// 页面 1：定义探索
+setTimeout(() => {
+    const p_val = 2; // 方程 y^2 = 4x
+    const scale = 10;
+    const svg = document.getElementById('svg-0');
+    const pt = document.getElementById('pointP-0');
+    
+    // 初始化准线与焦点位置
+    const f_svg_x = 180 + (p_val/2)*scale; // 180 + 1*10 = 190
+    const l_svg_x = 180 - (p_val/2)*scale; // 180 - 1*10 = 170
+    document.getElementById('directrix-0').setAttribute('x1', l_svg_x);
+    document.getElementById('directrix-0').setAttribute('x2', l_svg_x);
+    document.querySelector('#svg-0 text[fill="#8b5cf6"]').setAttribute('x', l_svg_x - 5);
+    document.querySelector('#svg-0 circle[fill="#ef4444"]').setAttribute('cx', f_svg_x);
+    document.querySelector('#svg-0 text[fill="#ef4444"]').setAttribute('x', f_svg_x + 6);
+    
+    const updateDef = (sx, sy, mx, my) => {
+        document.getElementById('linePF-0').setAttribute('x1', f_svg_x);
+        document.getElementById('linePF-0').setAttribute('y1', 120);
+        document.getElementById('linePF-0').setAttribute('x2', sx);
+        document.getElementById('linePF-0').setAttribute('y2', sy);
+        
+        document.getElementById('linePL-0').setAttribute('x1', l_svg_x);
+        document.getElementById('linePL-0').setAttribute('y1', sy);
+        document.getElementById('linePL-0').setAttribute('x2', sx);
+        document.getElementById('linePL-0').setAttribute('y2', sy);
+        
+        // 计算实际距离
+        let dist = Math.abs(mx - (-p_val/2)); 
+        let dStr = dist.toFixed(2);
+        document.getElementById('valPF-0').textContent = dStr;
+        document.getElementById('valPL-0').textContent = dStr;
+    };
+    makeDraggableY(svg, pt, p_val, updateDef);
+    updateDef(180 + (4)*scale, 120 - (4)*scale, 4, 4); // 初始点位
+}, 100);
+
+// 页面 2：参数变化
+setTimeout(() => {
+    const slider = document.getElementById('slider-1');
+    const updateFocus = () => {
+        let p = parseFloat(slider.value);
+        let scale = 10;
+        document.getElementById('curve-1').setAttribute('d', getParabolaPath(0, p, scale));
+        
+        let fx = 180 + (p/2)*scale;
+        let lx = 180 - (p/2)*scale;
+        
+        document.getElementById('focus-1').setAttribute('cx', fx);
+        document.getElementById('focusText-1').setAttribute('x', fx + 6);
+        document.getElementById('directrix-1').setAttribute('x1', lx);
+        document.getElementById('directrix-1').setAttribute('x2', lx);
+        document.getElementById('dirTextSVG-1').setAttribute('x', lx - 5);
+        
+        document.getElementById('eqVal-1').textContent = (2*p).toFixed(1).replace('.0','');
+        document.getElementById('fVal-1').textContent = (p/2).toFixed(2).replace('.00','');
+        document.getElementById('lVal-1').textContent = (-p/2).toFixed(2).replace('.00','');
+    };
+    slider.addEventListener('input', updateFocus);
+    updateFocus();
+}, 100);
+
+// 页面 3：开口方向
+setTimeout(() => {
+    const btns = document.querySelectorAll('#btns-2 .dir-btn');
+    const curve = document.getElementById('curve-2');
+    const focus = document.getElementById('focus-2');
+    const dirLine = document.getElementById('directrix-2');
+    const dirText = document.getElementById('dirText-2');
+    
+    const p = 3, scale = 10;
+    
+    const setDir = (type) => {
+        btns.forEach(b => b.classList.remove('active'));
+        document.querySelector(`.dir-btn[data-t="${type}"]`).classList.add('active');
+        
+        curve.setAttribute('d', getParabolaPath(type, p, scale));
+        
+        let cx = 180, cy = 120, offset = (p/2)*scale;
+        
+        if(type === 0){ // 右
+            focus.setAttribute('cx', cx+offset); focus.setAttribute('cy', cy);
+            dirLine.setAttribute('x1', cx-offset); dirLine.setAttribute('x2', cx-offset);
+            dirLine.setAttribute('y1', 20); dirLine.setAttribute('y2', 220);
+            dirText.textContent = "向右";
+        } else if(type === 1){ // 左
+            focus.setAttribute('cx', cx-offset); focus.setAttribute('cy', cy);
+            dirLine.setAttribute('x1', cx+offset); dirLine.setAttribute('x2', cx+offset);
+            dirLine.setAttribute('y1', 20); dirLine.setAttribute('y2', 220);
+            dirText.textContent = "向左";
+        } else if(type === 2){ // 上
+            focus.setAttribute('cx', cx); focus.setAttribute('cy', cy-offset);
+            dirLine.setAttribute('x1', 20); dirLine.setAttribute('x2', 340);
+            dirLine.setAttribute('y1', cy+offset); dirLine.setAttribute('y2', cy+offset);
+            dirText.textContent = "向上";
+        } else if(type === 3){ // 下
+            focus.setAttribute('cx', cx); focus.setAttribute('cy', cy+offset);
+            dirLine.setAttribute('x1', 20); dirLine.setAttribute('x2', 340);
+            dirLine.setAttribute('y1', cy-offset); dirLine.setAttribute('y2', cy-offset);
+            dirText.textContent = "向下";
+        }
+    };
+    
+    btns.forEach(b => b.addEventListener('click', () => setDir(parseInt(b.dataset.t))));
+    setDir(0);
+}, 100);
+</script>
+
+</body>
+</html>
